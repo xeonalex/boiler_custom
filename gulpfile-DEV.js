@@ -1,3 +1,5 @@
+// хотів зробити для мультипроектів але чет завяла ідея
+
 var gulp = require('gulp'),
     concat = require('gulp-concat'),// Склейка файлов
     browserSync  = require('browser-sync'), // BrowserSync
@@ -16,10 +18,15 @@ var gulp = require('gulp'),
     changed = require('gulp-changed'),
     rigger = require('gulp-rigger'), // іморт файлів в файл like //="../../../bower_components/...
     gcmq = require('gulp-group-css-media-queries'), // обєднує media з однаковими breakpoint
-    zip = require('gulp-zip'); // обєднує media з однаковими breakpoint
+    zip = require('gulp-zip'), // обєднує media з однаковими breakpoint
+    clean = require('gulp-clean'); // очистка папок
 
 var path = {
-    name: "boiler",
+    clearPath: 'build/',  // папка для очистки
+    projectsPath: 'projects/',
+    projects: ['boiler/'], // список папок для проектів, масив як архів
+    name: '',   //
+    // name: '',   //
     build: { //Тут мы укажем куда складывать готовые после сборки файлы
         server: 'build/',
         html: 'build/',
@@ -31,25 +38,31 @@ var path = {
         favicon: 'build/favicon/'
     },
     src: { //Пути откуда брать исходники
-        pug: ['src/pug/*.pug','!src/pug/_*.pug'], //Синтаксис src/*.html говорит gulp что мы хотим взять все файлы с расширением .html
-        js: 'src/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
-        jsVendor: 'src/js/vendor/*.js',//В стилях и скриптах нам понадобятся только main файлы
-        scss: 'src/sass/**/*.scss',
-        img: ['src/img/**/*.*','!src/img/**/*.tmp'],//  Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
-        fonts: 'src/fonts/*',
-        favicon: 'src/favicon/*'
+        pug: [this.name+'src/pug/*.pug','!'+this.name+'src/pug/_*.pug'], //Синтаксис src/*.html говорит gulp что мы хотим взять все файлы с расширением .html
+        js: this.name+'src/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
+        jsVendor: this.name+'src/js/vendor/*.js',//В стилях и скриптах нам понадобятся только main файлы
+        scss: this.name+'src/sass/**/*.scss',
+        img: [this.name+'src/img/**/*.*','!'+this.name+'src/img/**/*.tmp'],//  Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
+        fonts: this.name+'src/fonts/*',
+        favicon: this.name+'src/favicon/*'
     },
     watch: { //Тут мы укажем, за изменением каких файлов мы хотим наблюдать
-        pug: './src/pug/**/*.pug',
-        pugIncludes: './src/pug/_includes/**/*.pug',
-        js: './src/js/*.js',
-        jsVendor: './src/js/vendor/*.js',
-        scss: ["./src/sass/**/*.scss",'./src/sass/_*.scss'],
-        img: './src/img/**/*',
-        favicon: './src/favicon/*',
-        fonts: './src/fonts/*'
+        pug: this.name+'src/pug/**/*.pug',
+        pugIncludes: this.name+'./src/pug/_includes/**/*.pug',
+        js: this.name+'src/js/*.js',
+        jsVendor: this.name+'src/js/vendor/*.js',
+        scss: [this.name+'src/sass/**/*.scss', this.name+'src/sass/_*.scss'],
+        img: this.name+'src/img/**/*',
+        favicon: this.name+'src/favicon/*',
+        fonts: this.name+'src/fonts/*'
     }
 };
+
+// очистка папки
+gulp.task('cleanFolder', function () {
+    return gulp.src(path.clearPath, {read: false})
+        .pipe(clean());
+});
 
 // робимо архів нашого білда
 gulp.task('zip', () => {
@@ -63,7 +76,7 @@ gulp.task('uncss', function() {
     .pipe(uncss({
       html: ['build/*.html']
     }))
-    .pipe(gcmq())
+    //.pipe(gcmq())
     .pipe(shorthand())
     .pipe(rename('main.css'))
     .pipe(gulp.dest(path.build.css));
@@ -101,7 +114,7 @@ gulp.task('sass-dev', function() {
       errLogToConsole: true,
       sourcemaps : false
       }))
-    // .pipe(gcmq())
+    .pipe(gcmq())
     .on('error', sass.logError)
     .pipe(autoprefixer({
       browsers: ['last 15 versions'],
@@ -160,7 +173,7 @@ gulp.task('fonts', function(){
 });
 
 // WATCH
-gulp.task('default', ['pug-includes','sass-dev','img','js-vendor','js','favicon','fonts'], function () {
+gulp.task('default', ['cleanFolder','pug-includes','sass-dev','img','js-vendor','js','favicon','fonts'], function () {
 
     browserSync.init({
       server : path.build.server

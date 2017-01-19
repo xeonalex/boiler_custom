@@ -14,6 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "gulp-changed": "latest",
+    "gulp-clean": "^0.3.2",
     "gulp-cssnano": "latest",
     "gulp-group-css-media-queries": "^1.2.0",
     "gulp-plumber": "latest",
